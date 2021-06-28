@@ -89,7 +89,7 @@ export default function makeFindMixin(options) {
 
   const mixin = {
     data() {
-      return data
+      return { ...data }
     },
     computed: {
       [PAGINATION]() {
