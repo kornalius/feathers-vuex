@@ -39,4 +39,3 @@ lib/
 *.ntvs*
 *.njsproj
 *.sln
-/dist
