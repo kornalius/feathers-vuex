@@ -242,18 +242,20 @@ export default function makeServiceActions({ service, options }) {
       commit('setIdPending', { method: 'remove', id })
       return service
         .remove(id, params)
-        .then((item) => {
-          if (Array.isArray(item)) {
-            item.forEach((i) => {
-              const id = getId(i, idField)
-              commit('setIdPending', { method: 'remove', id })
+        .then(function (item) {
+          return __awaiter(this, void 0, void 0, function* () {
+            if (Array.isArray(item)) {
+              item.forEach((i) => {
+                const id = getId(i, idField)
+                commit('setIdPending', { method: 'remove', id })
+                commit('removeItem', id)
+                commit('unsetIdPending', { method: 'remove', id })
+              })
+            } else {
               commit('removeItem', id)
-              commit('unsetIdPending', { method: 'remove', id })
-            })
-          } else {
-            commit('removeItem', id)
-          }
-          return item
+            }
+            return item
+          })
         })
         .catch((error) => {
           commit('setError', { method: 'remove', error })

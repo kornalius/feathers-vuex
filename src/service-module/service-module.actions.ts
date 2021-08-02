@@ -238,7 +238,7 @@ export default function makeServiceActions({service, options}: serviceAndOptions
 
       return service
         .remove(id, params)
-        .then(item => {
+        .then(async function (item) {
           if (Array.isArray(item)) {
             item.forEach(i => {
               const id = getId(i, idField)
