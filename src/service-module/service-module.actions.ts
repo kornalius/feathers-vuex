@@ -142,6 +142,7 @@ export default function makeServiceActions({service, options}: serviceAndOptions
     },
 
     update({ commit, dispatch, state }, [id, data, params]) {
+      const { idField } = state
       commit('setPending', 'update')
       commit('setIdPending', { method: 'update', id })
 
@@ -150,8 +151,18 @@ export default function makeServiceActions({service, options}: serviceAndOptions
       return service
         .update(id, data, params)
         .then(async function (item) {
-          dispatch('addOrUpdate', item)
-          return state.keyedById[id]
+          if (Array.isArray(item)) {
+            item.forEach(i => {
+              const id = getId(i, idField)
+              commit('setIdPending', { method: 'update', id })
+              dispatch('addOrUpdate', i)
+              commit('unsetIdPending', { method: 'update', id })
+            })
+            return item.map(i => state.keyedById[i[idField]])
+          } else {
+            dispatch('addOrUpdate', item)
+            return state.keyedById[id]
+          }
         })
         .catch(error => {
           commit('setError', { method: 'update', error })
@@ -168,6 +179,7 @@ export default function makeServiceActions({service, options}: serviceAndOptions
      * This provides a simple way to patch with partial data.
      */
     patch({ commit, dispatch, state }, [id, data, params]) {
+      const { idField } = state
       commit('setPending', 'patch')
       commit('setIdPending', { method: 'patch', id })
 
@@ -183,8 +195,18 @@ export default function makeServiceActions({service, options}: serviceAndOptions
       return service
         .patch(id, data, params)
         .then(async function (item) {
-          dispatch('addOrUpdate', item)
-          return state.keyedById[id]
+          if (Array.isArray(item)) {
+            item.forEach(i => {
+              const id = getId(i, idField)
+              commit('setIdPending', { method: 'patch', id })
+              dispatch('addOrUpdate', i)
+              commit('unsetIdPending', { method: 'patch', id })
+            })
+            return item.map(i => state.keyedById[i[idField]])
+          } else {
+            dispatch('addOrUpdate', item)
+            return state.keyedById[id]
+          }
         })
         .catch(error => {
           commit('setError', { method: 'patch', error })
@@ -196,7 +218,8 @@ export default function makeServiceActions({service, options}: serviceAndOptions
         })
     },
 
-    remove({ commit }, idOrArray) {
+    remove({ state, commit }, idOrArray) {
+      const { idField } = state
       let id
       let params
 
@@ -216,7 +239,16 @@ export default function makeServiceActions({service, options}: serviceAndOptions
       return service
         .remove(id, params)
         .then(item => {
-          commit('removeItem', id)
+          if (Array.isArray(item)) {
+            item.forEach(i => {
+              const id = getId(i, idField)
+              commit('setIdPending', { method: 'remove', id })
+              commit('removeItem', id)
+              commit('unsetIdPending', { method: 'remove', id })
+            })
+          } else {
+            commit('removeItem', id)
+          }
           return item
         })
         .catch(error => {
